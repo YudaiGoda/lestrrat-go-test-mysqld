@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/url"
 	"os"
 	"os/exec"
@@ -114,11 +113,11 @@ func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 		config.Mysqld = fullpath
 	}
 
-	log.Println("NewMysqld() config.Mysqld: ", config.Mysqld)
 	// Detecting if the mysqld supports `--initialize-insecure` option or not from the
 	// output of `mysqld --help --verbose`.
 	// `mysql_install_db` command is obsoleted MySQL 5.7.6 or later and
 	// `mysqld --initialize-insecure` should be used.
+	// ここのエラーは解消
 	cmd := exec.Command(config.Mysqld, "--help", "--verbose")
 	if cmd.Err != nil {
 		if !errors.Is(cmd.Err, exec.ErrDot) {
@@ -129,10 +128,9 @@ func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 
 	out, err := cmd.CombinedOutput()
 	if !strings.Contains(string(out), "--initialize-insecure") && config.MysqlInstallDb == "" {
-		fullpath, err := exec.LookPath("mysql_install_db")
-		log.Println("NewMysqld() mysql_install_db: ", fullpath)
+		fullpath, err := exec.LookPath("mysqld --initialize-insecure")
 		if err != nil {
-			return nil, errors.Wrap(err, `could not find mysql_install_db in path`)
+			return nil, errors.Wrap(err, `could not find mysqld --initialize-insecure in path`)
 		}
 		config.MysqlInstallDb = fullpath
 	}
@@ -162,8 +160,6 @@ func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 			return nil, errors.Wrap(err, `failed to start mysqld`)
 		}
 	}
-
-	log.Println("NewMysqld() mysqld: ", mysqld)
 
 	return mysqld, nil
 }
@@ -239,7 +235,6 @@ func (m *TestMysqld) Setup() error {
 	vardir := filepath.Join(config.BaseDir, "var", "mysql")
 	_, err = os.Stat(vardir)
 	if err != nil && os.IsNotExist(err) {
-		log.Printf("Setup() mysql_install_db")
 		setupArgs := []string{fmt.Sprintf("--defaults-file=%s", m.DefaultsFile)}
 		// ここでmysql_instal_dbコマンドを設定してる
 		setupCmd := config.MysqlInstallDb
@@ -277,15 +272,12 @@ func (m *TestMysqld) Setup() error {
 			mysqlBaseDir = filepath.Dir(filepath.Dir(mysqlBaseDir))
 			setupArgs = append(setupArgs, fmt.Sprintf("--basedir=%s", mysqlBaseDir))
 		} else {
-			log.Printf("Setup() --initialize-insecure")
 			setupCmd = config.Mysqld
 			setupArgs = append(setupArgs, "--initialize-insecure")
 		}
 
 		cmd := exec.Command(setupCmd, setupArgs...)
 		output, err := cmd.CombinedOutput()
-		log.Printf("Setup() cmd: %s", setupCmd)
-		log.Printf("Setup() setupCmd: %s", setupCmd)
 		if err != nil {
 			// エラー箇所
 			// error: *** [/usr/bin/mysql_install_db --defaults-file=/tmp/mysqltest1106024190/etc/my.cnf --basedir=/usr] failed *** Installing MariaDB/MySQL system tables in '/tmp/mysqltest2113612513/var' ...
