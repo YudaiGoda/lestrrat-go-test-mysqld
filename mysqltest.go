@@ -128,7 +128,7 @@ func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 
 	out, err := cmd.CombinedOutput()
 	if !strings.Contains(string(out), "--initialize-insecure") && config.MysqlInstallDb == "" {
-		fullpath, err := exec.LookPath("mysqld --initialize-insecure")
+		fullpath, err := exec.LookPath("mysql_install_db")
 		if err != nil {
 			return nil, errors.Wrap(err, `could not find mysqld --initialize-insecure in path`)
 		}
