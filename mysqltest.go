@@ -29,7 +29,7 @@ func NewConfig() *MysqldConfig {
 }
 
 // NewMysqld creates a new TestMysqld instance
-// configはnilで入ってきてる
+// configはnilが渡されている
 func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 	guards := []func(){}
 
@@ -117,7 +117,7 @@ func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 	// output of `mysqld --help --verbose`.
 	// `mysql_install_db` command is obsoleted MySQL 5.7.6 or later and
 	// `mysqld --initialize-insecure` should be used.
-	// ここのエラーは解消
+	// ここのエラーは解消されたはず、、
 	cmd := exec.Command(config.Mysqld, "--help", "--verbose")
 	if cmd.Err != nil {
 		if !errors.Is(cmd.Err, exec.ErrDot) {
@@ -236,7 +236,7 @@ func (m *TestMysqld) Setup() error {
 	_, err = os.Stat(vardir)
 	if err != nil && os.IsNotExist(err) {
 		setupArgs := []string{fmt.Sprintf("--defaults-file=%s", m.DefaultsFile)}
-		// ここでmysql_instal_dbコマンドを設定してる
+		// ここでデータベースの初期化の設定をしてる
 		setupCmd := config.MysqlInstallDb
 		if setupCmd != "" {
 			// --basedir is the path to the MYSQL INSTALLATION, not our basedir
