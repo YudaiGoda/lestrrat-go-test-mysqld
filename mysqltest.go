@@ -123,7 +123,6 @@ func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 		if !errors.Is(cmd.Err, exec.ErrDot) {
 			return nil, errors.Wrap(cmd.Err, `failed to execute 'mysqld --help --verbose'`)
 		}
-		cmd.Err = nil
 	}
 
 	out, err := cmd.Output()
