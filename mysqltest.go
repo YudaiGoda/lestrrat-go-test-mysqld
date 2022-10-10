@@ -126,7 +126,7 @@ func NewMysqld(config *MysqldConfig) (*TestMysqld, error) {
 		cmd.Err = nil
 	}
 
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	if !strings.Contains(string(out), "--initialize-insecure") && config.MysqlInstallDb == "" {
 		fullpath, err := exec.LookPath("mysql_install_db")
 		if err != nil {
